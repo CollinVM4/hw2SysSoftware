@@ -55,8 +55,12 @@ void addLexeme(const char *word, int token, int value) {
     tableIndex++;
 }
 
-void error(const char *msg, const char *context) {
-    printf("ERROR: %s -> %s\n", msg, context);
+void error(const int msg, const char *context) {
+    if (tableIndex >= MAX_LEXEMES) return;
+    strncpy(table[tableIndex].lexeme, context, MAX_ID_LEN);
+    table[tableIndex].token = msg;
+    table[tableIndex].value = 1;
+    tableIndex++;
 }
 
 void lexer(const char *input) {
@@ -67,7 +71,7 @@ void lexer(const char *input) {
         if (input[i] == '/' && input[i+1] == '*') {
             i += 2;
             while (input[i] != '\0' && !(input[i] == '*' && input[i+1] == '/')) i++;
-            if (input[i] == '\0') { error("Unterminated comment", ""); return; }
+            if (input[i] == '\0') { error(0, ""); return; }
             i += 2;
             continue;
         }
@@ -77,7 +81,7 @@ void lexer(const char *input) {
             buffer[j] = '\0';
             if (isalnum(input[i])) {
                 while (isalnum(input[i])) i++;
-                error("Identifier too long", buffer);
+                error(-1, buffer);
                 continue;
             }
             int res = isReserved(buffer);
@@ -92,7 +96,7 @@ void lexer(const char *input) {
             buffer[j] = '\0';
             if (isdigit(input[i])) {
                 while (isdigit(input[i])) i++;
-                error("Number too long", buffer);
+                error(-2, buffer);
                 continue;
             }
             addLexeme(buffer, numbersym, atoi(buffer));
@@ -116,7 +120,7 @@ void lexer(const char *input) {
                 break;
             case ':':
                 if (input[i+1] == '=') { addLexeme(":=", becomessym, 0); i+=2; }
-                else { error("Invalid symbol", ":"); i++; }
+                else { error(-3, ":"); i++; }
                 break;
             case '(': addLexeme("(", lparentsym, 0); i++; break;
             case ')': addLexeme(")", rparentsym, 0); i++; break;
@@ -127,7 +131,7 @@ void lexer(const char *input) {
             default:
                 {
                     char bad[2] = {input[i], '\0'};
-                    error("Invalid symbol", bad);
+                    error(-3, bad);
                     i++;
                 }
                 break;
@@ -145,7 +149,18 @@ void printLexemeTable() {
     printf("\n");
     printf("lexeme\ttoken type\n");
     for (int i=0; i<tableIndex; i++) {
-        printf("%-12s %d\n", table[i].lexeme, table[i].token);
+        if(table[i].token > 0){
+            printf("%-12s %d\n", table[i].lexeme, table[i].token);
+        } else if(table[i].token == 0){
+            printf("%-12s %s\n", table[i].lexeme, "Unterminated Comment");
+        } else if(table[i].token == -1){
+            printf("%-12s %s\n", table[i].lexeme, "Indentifier too long");
+        } else if(table[i].token == -2){
+            printf("%-12s %s\n", table[i].lexeme, "Number too long");
+        } else if(table[i].token == -3){
+            printf("%-12s %s\n", table[i].lexeme, "Invalid Symbol");
+        }
+        
     }
     printf("\n");
 }
@@ -154,7 +169,12 @@ void printTokenList() {
     printf("Token List:\n");
     printf("\n");
     for (int i=0; i<tableIndex; i++) {
-        printf("%d ", table[i].token);
+        if(table[i].token > 0){
+            printf("%d ", table[i].token);
+        } else if(table[i].token <= 0){
+            printf("%d ", 1);
+        }
+        
         if (table[i].token == identsym || table[i].token == numbersym) {
             printf("%s ", table[i].lexeme);
         }
