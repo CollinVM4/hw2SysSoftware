@@ -114,15 +114,16 @@ void lexer(const char *input) {
                 if (input[i+1] == '=') { addLexeme(">=", geqsym, 0); i+=2; }
                 else { addLexeme(">", gtrsym, 0); i++; }
                 break;
-            case ':':
-                if (input[i+1] == '=') { addLexeme(":=", becomessym, 0); i+=2; }
-                else { error("Invalid symbol", ":"); i++; }
-                break;
+        
             case '(': addLexeme("(", lparentsym, 0); i++; break;
             case ')': addLexeme(")", rparentsym, 0); i++; break;
             case ',': addLexeme(",", commasym, 0); i++; break;
             case ';': addLexeme(";", semicolonsym, 0); i++; break;
             case '.': addLexeme(".", periodsym, 0); i++; break;
+            case ':':
+                if (input[i+1] == '=') { addLexeme(":=", becomessym, 0); i+=2; }
+                else { error("Invalid symbol", ":"); i++; }
+                break;
             default:
                 {
                     char bad[2] = {input[i], '\0'};
@@ -136,11 +137,13 @@ void lexer(const char *input) {
 
 void printSource(const char *input) {
     printf("Source Program:\n%s\n\n", input);
+    printf("\n");
 }
 
 void printLexemeTable() {
-    printf("Lexeme Table:\n");
-    printf("lexeme\t\ttoken type\n");
+    printf("Lexeme Table:\n\n");
+    printf("\n");
+    printf("lexeme\ttoken type\n");
     for (int i=0; i<tableIndex; i++) {
         printf("%-12s %d\n", table[i].lexeme, table[i].token);
     }
@@ -149,6 +152,7 @@ void printLexemeTable() {
 
 void printTokenList() {
     printf("Token List:\n");
+    printf("\n");
     for (int i=0; i<tableIndex; i++) {
         printf("%d ", table[i].token);
         if (table[i].token == identsym || table[i].token == numbersym) {
