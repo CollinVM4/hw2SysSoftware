@@ -10,7 +10,7 @@
 
 enum token_type {
     oddsym = 1, identsym, numbersym, plussym, minussym,
-    multsym, slashsym, oddsym_dup, eqlsym, neqsym,
+    multsym, slashsym, eqlsym, neqsym,
     lessym, leqsym, gtrsym, geqsym, lparentsym,
     rparentsym, commasym, semicolonsym, periodsym, becomessym,
     beginsym, endsym, ifsym, thensym, whilesym,
@@ -114,16 +114,16 @@ void lexer(const char *input) {
                 if (input[i+1] == '=') { addLexeme(">=", geqsym, 0); i+=2; }
                 else { addLexeme(">", gtrsym, 0); i++; }
                 break;
-        
+            case ':':
+                if (input[i+1] == '=') { addLexeme(":=", becomessym, 0); i+=2; }
+                else { error("Invalid symbol", ":"); i++; }
+                break;
             case '(': addLexeme("(", lparentsym, 0); i++; break;
             case ')': addLexeme(")", rparentsym, 0); i++; break;
             case ',': addLexeme(",", commasym, 0); i++; break;
             case ';': addLexeme(";", semicolonsym, 0); i++; break;
             case '.': addLexeme(".", periodsym, 0); i++; break;
-            case ':':
-                if (input[i+1] == '=') { addLexeme(":=", becomessym, 0); i+=2; }
-                else { error("Invalid symbol", ":"); i++; }
-                break;
+            
             default:
                 {
                     char bad[2] = {input[i], '\0'};
@@ -141,7 +141,7 @@ void printSource(const char *input) {
 }
 
 void printLexemeTable() {
-    printf("Lexeme Table:\n\n");
+    printf("Lexeme Table:\n");
     printf("\n");
     printf("lexeme\ttoken type\n");
     for (int i=0; i<tableIndex; i++) {
