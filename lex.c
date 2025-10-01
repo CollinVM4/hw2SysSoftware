@@ -13,9 +13,9 @@ enum token_type {
     multsym, slashsym, eqlsym, neqsym,
     lessym, leqsym, gtrsym, geqsym, lparentsym,
     rparentsym, commasym, semicolonsym, periodsym, becomessym,
-    beginsym, endsym, ifsym, thensym, whilesym,
+    beginsym, endsym, ifsym, fisym, thensym, whilesym,
     dosym, callsym, constsym, varsym, procsym,
-    writesym, readsym, elsesym
+    writesym, readsym, elsesym, evensym
 };
 
 typedef struct {
