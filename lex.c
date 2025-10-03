@@ -205,6 +205,7 @@ void printLexemeTable()
     printf("\nLexeme Table:\n");
     printf("\n");
     printf("lexeme\t     token type\n");
+    // loop through and print table
     for (int i=0; i<tableIndex; i++) 
     {
         // error handling
