@@ -1,3 +1,34 @@
+/*
+    Assignment :
+    lex - Lexical Analyzer for PL /0
+
+    Authors: < Collin Van Meter, Jadon Milne >
+
+    Language: C (only)
+
+    To Compile:
+        gcc -O2 -std=c11 -o lex lex.c
+
+    To Execute (on Eustis):
+        ./lex <input file>
+    where:
+        <input file> is the path to the PL /0 source program
+    Notes:
+    - Implement a lexical analyser for the PL /0 language.
+    - The program must detect errors such as
+        - numbers longer than five digits
+        - identifiers longer than eleven characters
+        - invalid characters
+    - The output format must exactly match the specification.
+    - Tested on Eustis.
+
+    Class: COP 3402 - System Software - Fall 2025
+
+    Instructor: Dr. Jie Lin
+    
+    Due Date: Friday, October 3, 2025 at 11:59 PM ET
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,15 +39,16 @@
 #define MAX_SOURCE_SIZE 10000
 #define MAX_LEXEMES 500
 
-enum token_type {
-    oddsym = 1, identsym, numbersym, plussym, minussym,
+typedef enum 
+{
+    skipsym = 1, identsym, numbersym, plussym, minussym,
     multsym, slashsym, eqlsym, neqsym,
     lessym, leqsym, gtrsym, geqsym, lparentsym,
     rparentsym, commasym, semicolonsym, periodsym, becomessym,
     beginsym, endsym, ifsym, fisym, thensym, whilesym,
     dosym, callsym, constsym, varsym, procsym,
     writesym, readsym, elsesym, evensym
-};
+} token_type;
 
 typedef struct {
     char lexeme[MAX_ID_LEN + 1];
@@ -31,7 +63,7 @@ const char *reserved[] = {
 const int reservedTokens[] = {
     constsym, varsym, procsym, callsym, beginsym, endsym,
     ifsym, thensym, elsesym, whilesym, dosym,
-    readsym, writesym, oddsym
+    readsym, writesym, skipsym
 };
 const int numReserved = 14;
 
@@ -39,15 +71,18 @@ char source[MAX_SOURCE_SIZE];
 lexeme table[MAX_LEXEMES];
 int tableIndex = 0;
 
-int isReserved(const char *word) {
-    for (int i = 0; i < numReserved; i++) {
+int isReserved(const char *word) 
+{
+    for (int i = 0; i < numReserved; i++) 
+    {
         if (strcmp(word, reserved[i]) == 0)
             return reservedTokens[i];
     }
     return 0;
 }
 
-void addLexeme(const char *word, int token, int value) {
+void addLexeme(const char *word, int token, int value) 
+{
     if (tableIndex >= MAX_LEXEMES) return;
     strncpy(table[tableIndex].lexeme, word, MAX_ID_LEN);
     table[tableIndex].token = token;
@@ -55,7 +90,8 @@ void addLexeme(const char *word, int token, int value) {
     tableIndex++;
 }
 
-void error(const int msg, const char *context) {
+void error(const int msg, const char *context) 
+{
     if (tableIndex >= MAX_LEXEMES) return;
     strncpy(table[tableIndex].lexeme, context, MAX_ID_LEN);
     table[tableIndex].token = msg;
@@ -63,23 +99,28 @@ void error(const int msg, const char *context) {
     tableIndex++;
 }
 
-void lexer(const char *input) {
+void lexer(const char *input) 
+{
     int i = 0;
-    while (input[i] != '\0') {
+    while (input[i] != '\0') 
+    {
         if (isspace(input[i])) { i++; continue; }
 
-        if (input[i] == '/' && input[i+1] == '*') {
+        if (input[i] == '/' && input[i+1] == '*') 
+        {
             i += 2;
             while (input[i] != '\0' && !(input[i] == '*' && input[i+1] == '/')) i++;
-            if (input[i] == '\0') { error(0, ""); return; }
+            if (input[i] == '\0') { return; }  // Just return without error for unterminated comment
             i += 2;
             continue;
         }
-        if (isalpha(input[i])) {
+        if (isalpha(input[i])) 
+        {
             char buffer[MAX_ID_LEN+5]; int j=0;
             while (isalnum(input[i]) && j < MAX_ID_LEN) buffer[j++] = input[i++];
             buffer[j] = '\0';
-            if (isalnum(input[i])) {
+            if (isalnum(input[i])) 
+            {
                 while (isalnum(input[i])) i++;
                 error(-1, buffer);
                 continue;
@@ -90,11 +131,13 @@ void lexer(const char *input) {
             continue;
         }
 
-        if (isdigit(input[i])) {
+        if (isdigit(input[i])) 
+        {
             char buffer[MAX_NUM_LEN+5]; int j=0;
             while (isdigit(input[i]) && j < MAX_NUM_LEN) buffer[j++] = input[i++];
             buffer[j] = '\0';
-            if (isdigit(input[i])) {
+            if (isdigit(input[i])) 
+            {
                 while (isdigit(input[i])) i++;
                 error(-2, buffer);
                 continue;
@@ -103,7 +146,8 @@ void lexer(const char *input) {
             continue;
         }
 
-        switch (input[i]) {
+        switch (input[i]) 
+        {
             case '+': addLexeme("+", plussym, 0); i++; break;
             case '-': addLexeme("-", minussym, 0); i++; break;
             case '*': addLexeme("*", multsym, 0); i++; break;
@@ -139,25 +183,32 @@ void lexer(const char *input) {
     }
 }
 
-void printSource(const char *input) {
-    printf("Source Program:\n%s\n\n", input);
-    printf("\n");
+void printSource(const char *input) 
+{
+    printf("Source Program:\n\n%s\n", input);
 }
 
-void printLexemeTable() {
-    printf("Lexeme Table:\n");
+void printLexemeTable() 
+{
+    printf("\nLexeme Table:\n");
     printf("\n");
-    printf("lexeme\ttoken type\n");
-    for (int i=0; i<tableIndex; i++) {
-        if(table[i].token > 0){
+    printf("lexeme\t     token type\n");
+    for (int i=0; i<tableIndex; i++) 
+    {
+        if(table[i].token > 0)
+        {
             printf("%-12s %d\n", table[i].lexeme, table[i].token);
-        } else if(table[i].token == 0){
-            printf("%-12s %s\n", table[i].lexeme, "Unterminated Comment");
-        } else if(table[i].token == -1){
+        } 
+        else if(table[i].token == -1)
+        {
             printf("%-12s %s\n", table[i].lexeme, "Indentifier too long");
-        } else if(table[i].token == -2){
+        } 
+        else if(table[i].token == -2)
+        {
             printf("%-12s %s\n", table[i].lexeme, "Number too long");
-        } else if(table[i].token == -3){
+        } 
+        else if(table[i].token == -3)
+        {
             printf("%-12s %s\n", table[i].lexeme, "Invalid Symbol");
         }
         
@@ -165,36 +216,46 @@ void printLexemeTable() {
     printf("\n");
 }
 
-void printTokenList() {
+void printTokenList() 
+{
     printf("Token List:\n");
     printf("\n");
-    for (int i=0; i<tableIndex; i++) {
-        if(table[i].token > 0){
+    for (int i=0; i<tableIndex; i++) 
+    {
+        if(table[i].token > 0)
+        {
             printf("%d ", table[i].token);
-        } else if(table[i].token <= 0){
+        } 
+        else if(table[i].token < 0)
+        {
             printf("%d ", 1);
         }
         
-        if (table[i].token == identsym || table[i].token == numbersym) {
+        if (table[i].token == identsym || table[i].token == numbersym) 
+        {
             printf("%s ", table[i].lexeme);
         }
     }
     printf("\n");
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
+int main(int argc, char *argv[]) 
+{
+    if (argc != 2) 
+    {
         printf("Usage: %s <sourcefile>\n", argv[0]);
         return 1;
     }
 
     FILE *fp = fopen(argv[1], "r");
-    if (!fp) {
+    if (!fp) 
+    {
         perror("File open error");
         return 1;
     }
 
-    fread(source, 1, MAX_SOURCE_SIZE-1, fp);
+    size_t bytesRead = fread(source, 1, MAX_SOURCE_SIZE-1, fp);
+    source[bytesRead] = '\0';  // null-terminate the string
     fclose(fp);
 
     printSource(source);

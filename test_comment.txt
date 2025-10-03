@@ -1,0 +1,4 @@
+begin
+x := 5;
+/* this is an unterminated comment
+end .
