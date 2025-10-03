@@ -25,7 +25,7 @@
     Class: COP 3402 - System Software - Fall 2025
 
     Instructor: Dr. Jie Lin
-    
+
     Due Date: Friday, October 3, 2025 at 11:59 PM ET
 */
 
@@ -50,23 +50,27 @@ typedef enum
     writesym, readsym, elsesym, evensym
 } token_type;
 
-typedef struct {
+typedef struct 
+{
     char lexeme[MAX_ID_LEN + 1];
     int token;
     int value;
 } lexeme;
 
-const char *reserved[] = {
+const char *reserved[] = 
+{
     "const","var","procedure","call","begin","end","if","then",
     "else","while","do","read","write","odd"
 };
-const int reservedTokens[] = {
+
+const int reservedTokens[] = 
+{
     constsym, varsym, procsym, callsym, beginsym, endsym,
     ifsym, thensym, elsesym, whilesym, dosym,
     readsym, writesym, skipsym
 };
-const int numReserved = 14;
 
+const int numReserved = 14;
 char source[MAX_SOURCE_SIZE];
 lexeme table[MAX_LEXEMES];
 int tableIndex = 0;
@@ -83,7 +87,9 @@ int isReserved(const char *word)
 
 void addLexeme(const char *word, int token, int value) 
 {
+    // prevents overflow
     if (tableIndex >= MAX_LEXEMES) return;
+    // copy word to lexeme table
     strncpy(table[tableIndex].lexeme, word, MAX_ID_LEN);
     table[tableIndex].token = token;
     table[tableIndex].value = value;
@@ -93,6 +99,7 @@ void addLexeme(const char *word, int token, int value)
 void error(const int msg, const char *context) 
 {
     if (tableIndex >= MAX_LEXEMES) return;
+    // copy context to lexeme table (for errors only)
     strncpy(table[tableIndex].lexeme, context, MAX_ID_LEN);
     table[tableIndex].token = msg;
     table[tableIndex].value = 1;
@@ -102,6 +109,7 @@ void error(const int msg, const char *context)
 void lexer(const char *input) 
 {
     int i = 0;
+    // while we dont reach null terminator
     while (input[i] != '\0') 
     {
         if (isspace(input[i])) { i++; continue; }
@@ -110,10 +118,11 @@ void lexer(const char *input)
         {
             i += 2;
             while (input[i] != '\0' && !(input[i] == '*' && input[i+1] == '/')) i++;
-            if (input[i] == '\0') { return; }  // Just return without error for unterminated comment
+            if (input[i] == '\0') { return; }  // return without error for unterminated comment
             i += 2;
             continue;
         }
+        // identifier or reserved word
         if (isalpha(input[i])) 
         {
             char buffer[MAX_ID_LEN+5]; int j=0;
@@ -131,6 +140,7 @@ void lexer(const char *input)
             continue;
         }
 
+        // number
         if (isdigit(input[i])) 
         {
             char buffer[MAX_NUM_LEN+5]; int j=0;
@@ -146,6 +156,7 @@ void lexer(const char *input)
             continue;
         }
 
+        // special syms
         switch (input[i]) 
         {
             case '+': addLexeme("+", plussym, 0); i++; break;
@@ -172,6 +183,7 @@ void lexer(const char *input)
             case ';': addLexeme(";", semicolonsym, 0); i++; break;
             case '.': addLexeme(".", periodsym, 0); i++; break;
             
+            // defaults to error for invalid syms
             default:
                 {
                     char bad[2] = {input[i], '\0'};
@@ -195,6 +207,7 @@ void printLexemeTable()
     printf("lexeme\t     token type\n");
     for (int i=0; i<tableIndex; i++) 
     {
+        // error handling
         if(table[i].token > 0)
         {
             printf("%-12s %d\n", table[i].lexeme, table[i].token);
@@ -241,6 +254,7 @@ void printTokenList()
 
 int main(int argc, char *argv[]) 
 {
+    // file input handling
     if (argc != 2) 
     {
         printf("Usage: %s <sourcefile>\n", argv[0]);
@@ -258,6 +272,7 @@ int main(int argc, char *argv[])
     source[bytesRead] = '\0';  // null-terminate the string
     fclose(fp);
 
+    // main program flow
     printSource(source);
     lexer(source);
     printLexemeTable();
