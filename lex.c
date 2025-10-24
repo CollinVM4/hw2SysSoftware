@@ -39,6 +39,9 @@
 #define MAX_SOURCE_SIZE 10000
 #define MAX_LEXEMES 500
 
+FILE *fptr;
+
+
 typedef enum 
 {
     skipsym = 1, identsym, numbersym, plussym, minussym,
@@ -232,29 +235,31 @@ void printLexemeTable()
 
 void printTokenList() 
 {
-    printf("Token List:\n");
-    printf("\n");
+    // printf("Token List:\n");
+    // printf("\n");
     for (int i=0; i<tableIndex; i++) 
     {
         if(table[i].token > 0)
         {
-            printf("%d ", table[i].token);
+            fprintf(fptr, "%d ", table[i].token);
         } 
         else if(table[i].token < 0)
         {
-            printf("%d ", 1);
+            fprintf(fptr, "%d ", 1);
         }
         
         if (table[i].token == identsym || table[i].token == numbersym) 
         {
-            printf("%s ", table[i].lexeme);
+            fprintf(fptr, "%s ", table[i].lexeme);
         }
     }
-    printf("\n");
+    fprintf(fptr, "\n");
 }
 
 int main(int argc, char *argv[]) 
 {
+    fptr = fopen("tokens.txt","w");
+    
     // file input handling
     if (argc != 2) 
     {
@@ -274,9 +279,9 @@ int main(int argc, char *argv[])
     fclose(fp);
 
     // main program flow
-    printSource(source);
+    // printSource(source);
     lexer(source);
-    printLexemeTable();
+    // printLexemeTable();
     printTokenList();
 
     return 0;
