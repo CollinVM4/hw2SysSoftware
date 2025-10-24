@@ -41,7 +41,6 @@
 
 FILE *fptr;
 
-
 typedef enum 
 {
     skipsym = 1, identsym, numbersym, plussym, minussym,
@@ -70,8 +69,8 @@ const int reservedTokens[] =
 {
     constsym, varsym, procsym, callsym, beginsym, endsym,
     ifsym, thensym, elsesym, whilesym, dosym,
-    readsym, writesym, skipsym
 };
+
 
 const int numReserved = 14;
 char source[MAX_SOURCE_SIZE];
@@ -109,26 +108,39 @@ void error(const int msg, const char *context)
     tableIndex++;
 }
 
+void handleComment(const char *input, int *i) 
+{
+    *i += 2; // Skip the opening "/*"
+    while (input[*i] != '\0' && !(input[*i] == '*' && input[*i + 1] == '/')) 
+    {
+        (*i)++;
+    }
+    if (input[*i] == '\0') 
+    {
+        error(-4, "Unclosed comment");
+        return;
+    }
+    *i += 2; // Skip the closing "*/"
+}
+
 void lexer(const char *input) 
 {
     int i = 0;
-    // while we dont reach null terminator
+    // while we don't reach null terminator
     while (input[i] != '\0') 
     {
         if (isspace(input[i])) { i++; continue; }
 
-        if (input[i] == '/' && input[i+1] == '*') 
+        if (input[i] == '/' && input[i + 1] == '*') 
         {
-            i += 2;
-            while (input[i] != '\0' && !(input[i] == '*' && input[i+1] == '/')) i++;
-            if (input[i] == '\0') { return; }  // return without error for unterminated comment
-            i += 2;
+            handleComment(input, &i);
             continue;
         }
+
         // identifier or reserved word
         if (isalpha(input[i])) 
         {
-            char buffer[MAX_ID_LEN+5]; int j=0;
+            char buffer[MAX_ID_LEN + 5]; int j = 0;
             while (isalnum(input[i]) && j < MAX_ID_LEN) buffer[j++] = input[i++];
             buffer[j] = '\0';
             if (isalnum(input[i])) 
@@ -146,7 +158,7 @@ void lexer(const char *input)
         // number
         if (isdigit(input[i])) 
         {
-            char buffer[MAX_NUM_LEN+5]; int j=0;
+            char buffer[MAX_NUM_LEN + 5]; int j = 0;
             while (isdigit(input[i]) && j < MAX_NUM_LEN) buffer[j++] = input[i++];
             buffer[j] = '\0';
             if (isdigit(input[i])) 
@@ -159,7 +171,7 @@ void lexer(const char *input)
             continue;
         }
 
-        // special syms
+        // special symbols
         switch (input[i]) 
         {
             case '+': addLexeme("+", plussym, 0); i++; break;
@@ -168,16 +180,16 @@ void lexer(const char *input)
             case '/': addLexeme("/", slashsym, 0); i++; break;
             case '=': addLexeme("=", eqlsym, 0); i++; break;
             case '<':
-                if (input[i+1] == '=') { addLexeme("<=", leqsym, 0); i+=2; }
-                else if (input[i+1] == '>') { addLexeme("<>", neqsym, 0); i+=2; }
+                if (input[i + 1] == '=') { addLexeme("<=", leqsym, 0); i += 2; }
+                else if (input[i + 1] == '>') { addLexeme("<>", neqsym, 0); i += 2; }
                 else { addLexeme("<", lessym, 0); i++; }
                 break;
             case '>':
-                if (input[i+1] == '=') { addLexeme(">=", geqsym, 0); i+=2; }
+                if (input[i + 1] == '=') { addLexeme(">=", geqsym, 0); i += 2; }
                 else { addLexeme(">", gtrsym, 0); i++; }
                 break;
             case ':':
-                if (input[i+1] == '=') { addLexeme(":=", becomessym, 0); i+=2; }
+                if (input[i + 1] == '=') { addLexeme(":=", becomessym, 0); i += 2; }
                 else { error(-3, ":"); i++; }
                 break;
             case '(': addLexeme("(", lparentsym, 0); i++; break;
@@ -185,8 +197,8 @@ void lexer(const char *input)
             case ',': addLexeme(",", commasym, 0); i++; break;
             case ';': addLexeme(";", semicolonsym, 0); i++; break;
             case '.': addLexeme(".", periodsym, 0); i++; break;
-            
-            // defaults to error for invalid syms
+
+            // defaults to error for invalid symbols
             default:
                 {
                     char bad[2] = {input[i], '\0'};
